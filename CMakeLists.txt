@@ -6,6 +6,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -48,10 +49,14 @@ install(TARGETS ${PROJECT_NAME}_cpp server
 )
 install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
-install(PROGRAMS tf_service/buffer_client.py DESTINATION lib/${PROJECT_NAME})
+
+ament_python_install_package(tf_service)
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME}_cpp)
-ament_export_dependencies(builtin_interfaces geometry_msgs rclcpp tf2 tf2_msgs tf2_ros rosidl_default_runtime)
+ament_export_dependencies(
+  builtin_interfaces geometry_msgs rclcpp tf2 tf2_msgs tf2_ros rosidl_default_runtime
+  ament_cmake_python
+)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_package()
