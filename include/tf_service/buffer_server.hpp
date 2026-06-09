@@ -36,7 +36,7 @@ struct ServerOptions
 class BufferServerNode : public rclcpp::Node
 {
 public:
-  explicit BufferServerNode(const ServerOptions & options = ServerOptions());
+  explicit BufferServerNode(const rclcpp::NodeOptions & node_options = rclcpp::NodeOptions());
   void init();
 
 private:

@@ -23,9 +23,16 @@
 namespace tf_service
 {
 
-BufferServerNode::BufferServerNode(const ServerOptions & options)
-: Node("tf_service"), options_(options)
+BufferServerNode::BufferServerNode(const rclcpp::NodeOptions & node_options)
+: Node("tf_service", node_options)
 {
+  this->declare_parameter<double>("cache_time_sec", 10.0);
+  this->declare_parameter<double>("max_timeout_sec", 10.0);
+  this->declare_parameter<bool>("debug", false);
+
+  options_.cache_time_sec = this->get_parameter("cache_time_sec").as_double();
+  options_.max_timeout_sec = this->get_parameter("max_timeout_sec").as_double();
+  options_.debug = this->get_parameter("debug").as_bool();
 }
 
 void BufferServerNode::init()
