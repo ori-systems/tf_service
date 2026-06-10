@@ -38,6 +38,7 @@ from tf2_ros import (
     LookupException,
     TimeoutException,
     TransformException,
+    BufferInterface,
 )
 
 from tf_service_msgs.srv import CanTransform, LookupTransform
@@ -48,7 +49,7 @@ def _service_name(server_node_name: str, leaf: str) -> str:
     return f"/{leaf}" if not server_node_name else f"{server_node_name}/{leaf}"
 
 
-class BufferClient:
+class BufferClient(BufferInterface):
     """
     A client for the tf_service.
 
