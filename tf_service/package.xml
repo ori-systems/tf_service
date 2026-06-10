@@ -12,6 +12,7 @@
 
   <depend>builtin_interfaces</depend>
   <depend>geometry_msgs</depend>
+  <depend>tf_service_msgs</depend>
   <depend>rclcpp</depend>
   <depend>rclpy</depend>
   <depend>tf2</depend>
