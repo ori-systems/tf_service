@@ -22,8 +22,8 @@
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "tf_service/srv/can_transform.hpp"
-#include "tf_service/srv/lookup_transform.hpp"
+#include "tf_service_msgs/srv/can_transform.hpp"
+#include "tf_service_msgs/srv/lookup_transform.hpp"
 
 namespace tf_service
 {
@@ -69,8 +69,8 @@ public:
     std::string * errstr = nullptr);
 
 private:
-  using CanTransform = tf_service::srv::CanTransform;
-  using LookupTransform = tf_service::srv::LookupTransform;
+  using CanTransform = tf_service_msgs::srv::CanTransform;
+  using LookupTransform = tf_service_msgs::srv::LookupTransform;
 
   std::string serviceName(const std::string & server_node_name, const std::string & leaf) const;
   builtin_interfaces::msg::Time toMsg(const rclcpp::Time & time) const;

@@ -40,7 +40,7 @@ from tf2_ros import (
     TransformException,
 )
 
-from tf_service.srv import CanTransform, LookupTransform
+from tf_service_msgs.srv import CanTransform, LookupTransform
 
 
 def _service_name(server_node_name: str, leaf: str) -> str:

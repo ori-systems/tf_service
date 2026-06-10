@@ -20,8 +20,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "tf2_ros/buffer.h"
 #include "tf2_ros/transform_listener.h"
-#include "tf_service/srv/can_transform.hpp"
-#include "tf_service/srv/lookup_transform.hpp"
+#include "tf_service_msgs/srv/can_transform.hpp"
+#include "tf_service_msgs/srv/lookup_transform.hpp"
 
 namespace tf_service
 {
@@ -40,8 +40,8 @@ public:
   void init();
 
 private:
-  using CanTransform = tf_service::srv::CanTransform;
-  using LookupTransform = tf_service::srv::LookupTransform;
+  using CanTransform = tf_service_msgs::srv::CanTransform;
+  using LookupTransform = tf_service_msgs::srv::LookupTransform;
 
   void handleLookupTransform(
     const std::shared_ptr<LookupTransform::Request> request,
