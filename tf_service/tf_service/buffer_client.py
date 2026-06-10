@@ -180,6 +180,40 @@ class BufferClient:
         result = self._wait(future, timeout)
         return result.can_transform, result.errstr
 
+    def can_transform_full(
+        self,
+        target_frame: str,
+        target_time: Time,
+        source_frame: str,
+        source_time: Time,
+        fixed_frame: str,
+        timeout: Duration = Duration()
+    ) -> bool:
+        """
+        Check if a transform from the source frame to the target frame is possible (advanced API).
+
+        Must be implemented by a subclass of BufferInterface.
+
+        :param target_frame: Name of the frame to transform into.
+        :param target_time: The time to transform to (0 will get the latest).
+        :param source_frame: Name of the input frame.
+        :param source_time: The time at which source_frame will be evaluated (0 will get the latest).
+        :param fixed_frame: Name of the frame to consider constant in time.
+        :param timeout: Time to wait for the target frame to become available.
+        :return: True if the transform is possible, false otherwise.
+        """
+        req = CanTransform.Request()
+        req.target_frame = target_frame
+        req.target_time = target_time.to_msg()
+        req.source_frame = source_frame
+        req.source_time = source_time.to_msg()
+        req.fixed_frame = fixed_frame
+        req.timeout = timeout.to_msg()
+        req.advanced = True
+        future = self._can.call_async(req)
+        result = self._wait(future, timeout)
+        return result.can_transform, result.errstr
+
     def _wait(self, future, timeout: Duration):
         # The service server has its own timeout, but we add a grace period for the call itself to ensure the future completes.
         total_timeout = max(timeout.nanoseconds / 1e9, 0.0) + 1.0
