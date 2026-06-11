@@ -39,7 +39,7 @@ ros2 launch tf_service server.launch.py
 import rclpy
 from rclpy.time import Time
 from rclpy.duration import Duration
-from tf_service.buffer_client import BufferClient
+from tf_service import BufferClient
 
 rclpy.init()
 buf = BufferClient('/tf_service')
