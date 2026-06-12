@@ -25,6 +25,7 @@ import typing
 from typing import Optional
 
 import rclpy
+import tf2_geometry_msgs # pylint: disable=unused-import
 from rclpy.duration import Duration
 from rclpy.executors import SingleThreadedExecutor
 from rclpy.node import Node
@@ -48,6 +49,10 @@ def _service_name(server_node_name: str, leaf: str) -> str:
     server_node_name = server_node_name.rstrip("/")
     return f"/{leaf}" if not server_node_name else f"{server_node_name}/{leaf}"
 
+def to_time_msg(time_obj):
+    if hasattr(time_obj, 'to_msg'):
+        return time_obj.to_msg()
+    return time_obj # Assume it's already a message
 
 class BufferClient(BufferInterface):
     """
@@ -146,11 +151,12 @@ class BufferClient(BufferInterface):
         """
         req = LookupTransform.Request()
         req.target_frame = target_frame
-        req.target_time = target_time.to_msg()
+        req.target_time = to_time_msg(target_time)
         req.source_frame = source_frame
-        req.source_time = source_time.to_msg()
+        #print(f"{type(source_time)=}\n{source_time=}\n{repr(source_time)=}\n{dir(source_time)=}", flush=True)
+        req.source_time = to_time_msg(source_time)
         req.fixed_frame = fixed_frame
-        req.timeout = timeout.to_msg()
+        req.timeout = to_time_msg(timeout)
         req.advanced = True
         future = self._lookup.call_async(req)
         result = self._wait(future, timeout)
@@ -176,7 +182,7 @@ class BufferClient(BufferInterface):
         req.target_frame = target_frame
         req.source_frame = source_frame
         req.time = time.to_msg()
-        req.timeout = timeout.to_msg()
+        req.timeout = to_time_msg(timeout)
         req.advanced = False
         future = self._can.call_async(req)
         result = self._wait(future, timeout)
@@ -206,11 +212,11 @@ class BufferClient(BufferInterface):
         """
         req = CanTransform.Request()
         req.target_frame = target_frame
-        req.target_time = target_time.to_msg()
+        req.target_time = to_time_msg(target_time)
         req.source_frame = source_frame
-        req.source_time = source_time.to_msg()
+        req.source_time = to_time_msg(source_time)
         req.fixed_frame = fixed_frame
-        req.timeout = timeout.to_msg()
+        req.timeout = to_time_msg(timeout)
         req.advanced = True
         future = self._can.call_async(req)
         result = self._wait(future, timeout)
