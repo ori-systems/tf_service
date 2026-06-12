@@ -64,6 +64,7 @@ class BufferClient(BufferInterface):
         :param server_node_name: The name of the tf_service server node.
         :param node: An existing rclpy.Node to use for the service clients. If None, a new node is created and spun in a background thread.
         """
+        super().__init__()
         self._own_node = node is None
         self._node = node or rclpy.create_node("tf_service_buffer_client")
         self._lookup = self._node.create_client(
