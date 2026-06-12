@@ -23,11 +23,13 @@ from __future__ import annotations
 import threading
 import typing
 from typing import Optional
+import time
 
 import rclpy
 import tf2_geometry_msgs # pylint: disable=unused-import
 from rclpy.duration import Duration
 from rclpy.executors import SingleThreadedExecutor
+from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.node import Node
 from rclpy.time import Time
 from geometry_msgs.msg import TransformStamped
@@ -43,7 +45,6 @@ from tf2_ros import (
 )
 
 from tf_service_msgs.srv import CanTransform, LookupTransform
-
 
 def _service_name(server_node_name: str, leaf: str) -> str:
     server_node_name = server_node_name.rstrip("/")
@@ -71,12 +72,13 @@ class BufferClient(BufferInterface):
         """
         super().__init__()
         self._own_node = node is None
+        self._cb_group = ReentrantCallbackGroup()
         self._node = node or rclpy.create_node("tf_service_buffer_client")
         self._lookup = self._node.create_client(
-            LookupTransform, _service_name(server_node_name, "lookup_transform")
+            LookupTransform, _service_name(server_node_name, "lookup_transform"), callback_group=self._cb_group
         )
         self._can = self._node.create_client(
-            CanTransform, _service_name(server_node_name, "can_transform")
+            CanTransform, _service_name(server_node_name, "can_transform"), callback_group=self._cb_group
         )
         self._executor = None
         self._thread = None
@@ -125,8 +127,9 @@ class BufferClient(BufferInterface):
         req.time = time.to_msg()
         req.timeout = timeout.to_msg()
         req.advanced = False
-        future = self._lookup.call_async(req)
-        result = self._wait(future, timeout)
+        result = self._lookup.call(req, timeout.nanoseconds/1e9)
+        # future = self._lookup.call_async(req)
+        # result = self._wait(future, timeout)
         self._throw_on_error(result.status)
         return result.transform
 
@@ -158,8 +161,13 @@ class BufferClient(BufferInterface):
         req.fixed_frame = fixed_frame
         req.timeout = to_time_msg(timeout)
         req.advanced = True
-        future = self._lookup.call_async(req)
-        result = self._wait(future, timeout)
+        try:
+            result = self._lookup.call(req)#, timeout.nanoseconds/1e9)
+        except Exception as ex:
+            print(f"Call exception: {ex=}")
+        print(f"{result=}")
+        # future = self._lookup.call_async(req)
+        # result = self._wait(future, timeout)
         self._throw_on_error(result.status)
         return result.transform
 
@@ -184,8 +192,9 @@ class BufferClient(BufferInterface):
         req.time = time.to_msg()
         req.timeout = to_time_msg(timeout)
         req.advanced = False
-        future = self._can.call_async(req)
-        result = self._wait(future, timeout)
+        result = self._can.call(req, timeout.nanoseconds/1e9)
+        # future = self._can.call_async(req)
+        # result = self._wait(future, timeout)
         return result.can_transform, result.errstr
 
     def can_transform_full(
@@ -218,8 +227,9 @@ class BufferClient(BufferInterface):
         req.fixed_frame = fixed_frame
         req.timeout = to_time_msg(timeout)
         req.advanced = True
-        future = self._can.call_async(req)
-        result = self._wait(future, timeout)
+        result = self._can.call(req, timeout.nanoseconds/1e9)
+        #future = self._can.call_async(req)
+        #result = self._wait(future, timeout)
         return result.can_transform, result.errstr
 
     def _wait(self, future, timeout: Duration):
@@ -227,10 +237,16 @@ class BufferClient(BufferInterface):
         total_timeout = max(timeout.nanoseconds / 1e9, 0.0) + 1.0
         if self._own_node:
             if not future.done():
-                future.result(timeout=total_timeout)
+                future.result(timeout=total_timeout) # is invalid, should purge the onwn node stuff
         else:
-            rclpy.spin_until_future_complete(self._node, future, timeout_sec=total_timeout)
+            for i in range(20):
+                if not future.done():
+                    time.sleep(total_timeout/20.0)
+                else:
+                    break
+            #rclpy.spin_until_future_complete(self._node, future, timeout_sec=total_timeout)
         if not future.done():
+            print(f"{type(future)=}\n{dir(future)=}\n{future.done()=}")
             raise TimeoutException("service call to buffer server timed out")
         return future.result()
 
