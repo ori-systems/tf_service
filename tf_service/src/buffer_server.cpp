@@ -85,88 +85,13 @@ void BufferServerNode::fillError(
   status.error_string = message;
 }
 
-// void BufferServerNode::handleLookupTransform(
-//   const std::shared_ptr<LookupTransform::Request> request,
-//   std::shared_ptr<LookupTransform::Response> response)
-// {
-//   std::string errstr;
-//   if (!timeoutAllowed(request->timeout, &errstr)) {
-//     fillError(response->status, tf2_msgs::msg::TF2Error::INVALID_ARGUMENT_ERROR, errstr);
-//     return;
-//   }
-
-//   try {
-//     if (request->advanced) {
-//       response->transform = tf_buffer_->lookupTransform(
-//         request->target_frame,
-//         toTime(request->target_time),
-//         request->source_frame,
-//         toTime(request->source_time),
-//         request->fixed_frame,
-//         toTf2Duration(request->timeout));
-//     } else {
-//       response->transform = tf_buffer_->lookupTransform(
-//         request->target_frame,
-//         request->source_frame,
-//         toTime(request->time),
-//         toTf2Duration(request->timeout));
-//     }
-//     fillError(response->status, tf2_msgs::msg::TF2Error::NO_ERROR, "Success.");
-//   } catch (const tf2::ConnectivityException & exception) {
-//     fillError(response->status, tf2_msgs::msg::TF2Error::CONNECTIVITY_ERROR, exception.what());
-//   } catch (const tf2::ExtrapolationException & exception) {
-//     fillError(response->status, tf2_msgs::msg::TF2Error::EXTRAPOLATION_ERROR, exception.what());
-//   } catch (const tf2::InvalidArgumentException & exception) {
-//     fillError(response->status, tf2_msgs::msg::TF2Error::INVALID_ARGUMENT_ERROR, exception.what());
-//   } catch (const tf2::LookupException & exception) {
-//     fillError(response->status, tf2_msgs::msg::TF2Error::LOOKUP_ERROR, exception.what());
-//   } catch (const tf2::TimeoutException & exception) {
-//     fillError(response->status, tf2_msgs::msg::TF2Error::TIMEOUT_ERROR, exception.what());
-//   } catch (const tf2::TransformException & exception) {
-//     fillError(response->status, tf2_msgs::msg::TF2Error::TRANSFORM_ERROR, exception.what());
-//   }
-// }
-
 void BufferServerNode::handleLookupTransform(
   const std::shared_ptr<LookupTransform::Request> request,
   std::shared_ptr<LookupTransform::Response> response)
 {
-  const auto start = std::chrono::steady_clock::now();
-
-  std::cout
-    << "[handleLookupTransform] Request:"
-    << "\n  advanced=" << std::boolalpha << request->advanced
-    << "\n  target_frame=" << request->target_frame
-    << "\n  source_frame=" << request->source_frame
-    << "\n  fixed_frame=" << request->fixed_frame
-    << "\n  time.sec=" << request->time.sec
-    << " time.nanosec=" << request->time.nanosec
-    << "\n  target_time.sec=" << request->target_time.sec
-    << " target_time.nanosec=" << request->target_time.nanosec
-    << "\n  source_time.sec=" << request->source_time.sec
-    << " source_time.nanosec=" << request->source_time.nanosec
-    << "\n  timeout.sec=" << request->timeout.sec
-    << " timeout.nanosec=" << request->timeout.nanosec
-    << std::endl;
-
   std::string errstr;
   if (!timeoutAllowed(request->timeout, &errstr)) {
-    fillError(
-      response->status,
-      tf2_msgs::msg::TF2Error::INVALID_ARGUMENT_ERROR,
-      errstr);
-
-    const auto elapsed_us =
-      std::chrono::duration_cast<std::chrono::microseconds>(
-        std::chrono::steady_clock::now() - start).count();
-
-    std::cout
-      << "[handleLookupTransform] Response:"
-      << "\n  status.error=" << response->status.error
-      << "\n  status.error_string=" << response->status.error_string
-      << "\n  elapsed_us=" << elapsed_us
-      << std::endl << std::flush;
-
+    fillError(response->status, tf2_msgs::msg::TF2Error::INVALID_ARGUMENT_ERROR, errstr);
     return;
   }
 
@@ -186,59 +111,134 @@ void BufferServerNode::handleLookupTransform(
         toTime(request->time),
         toTf2Duration(request->timeout));
     }
-
-    fillError(
-      response->status,
-      tf2_msgs::msg::TF2Error::NO_ERROR,
-      "Success.");
+    fillError(response->status, tf2_msgs::msg::TF2Error::NO_ERROR, "Success.");
   } catch (const tf2::ConnectivityException & exception) {
-    fillError(response->status,
-      tf2_msgs::msg::TF2Error::CONNECTIVITY_ERROR,
-      exception.what());
+    fillError(response->status, tf2_msgs::msg::TF2Error::CONNECTIVITY_ERROR, exception.what());
   } catch (const tf2::ExtrapolationException & exception) {
-    fillError(response->status,
-      tf2_msgs::msg::TF2Error::EXTRAPOLATION_ERROR,
-      exception.what());
+    fillError(response->status, tf2_msgs::msg::TF2Error::EXTRAPOLATION_ERROR, exception.what());
   } catch (const tf2::InvalidArgumentException & exception) {
-    fillError(response->status,
-      tf2_msgs::msg::TF2Error::INVALID_ARGUMENT_ERROR,
-      exception.what());
+    fillError(response->status, tf2_msgs::msg::TF2Error::INVALID_ARGUMENT_ERROR, exception.what());
   } catch (const tf2::LookupException & exception) {
-    fillError(response->status,
-      tf2_msgs::msg::TF2Error::LOOKUP_ERROR,
-      exception.what());
+    fillError(response->status, tf2_msgs::msg::TF2Error::LOOKUP_ERROR, exception.what());
   } catch (const tf2::TimeoutException & exception) {
-    fillError(response->status,
-      tf2_msgs::msg::TF2Error::TIMEOUT_ERROR,
-      exception.what());
+    fillError(response->status, tf2_msgs::msg::TF2Error::TIMEOUT_ERROR, exception.what());
   } catch (const tf2::TransformException & exception) {
-    fillError(response->status,
-      tf2_msgs::msg::TF2Error::TRANSFORM_ERROR,
-      exception.what());
+    fillError(response->status, tf2_msgs::msg::TF2Error::TRANSFORM_ERROR, exception.what());
   }
-
-  const auto elapsed_us =
-    std::chrono::duration_cast<std::chrono::microseconds>(
-      std::chrono::steady_clock::now() - start).count();
-
-  std::cout
-    << "[handleLookupTransform] Response:"
-    << "\n  status.error=" << response->status.error
-    << "\n  status.error_string=" << response->status.error_string
-    << "\n  child_frame_id=" << response->transform.child_frame_id
-    << "\n  header.frame_id=" << response->transform.header.frame_id
-    << "\n  translation=("
-    << response->transform.transform.translation.x << ", "
-    << response->transform.transform.translation.y << ", "
-    << response->transform.transform.translation.z << ")"
-    << "\n  rotation=("
-    << response->transform.transform.rotation.x << ", "
-    << response->transform.transform.rotation.y << ", "
-    << response->transform.transform.rotation.z << ", "
-    << response->transform.transform.rotation.w << ")"
-    << "\n  elapsed_us=" << elapsed_us
-    << std::endl << std::flush;
 }
+
+// void BufferServerNode::handleLookupTransform(
+//   const std::shared_ptr<LookupTransform::Request> request,
+//   std::shared_ptr<LookupTransform::Response> response)
+// {
+//   const auto start = std::chrono::steady_clock::now();
+
+//   std::cout
+//     << "[handleLookupTransform] Request:"
+//     << "\n  advanced=" << std::boolalpha << request->advanced
+//     << "\n  target_frame=" << request->target_frame
+//     << "\n  source_frame=" << request->source_frame
+//     << "\n  fixed_frame=" << request->fixed_frame
+//     << "\n  time.sec=" << request->time.sec
+//     << " time.nanosec=" << request->time.nanosec
+//     << "\n  target_time.sec=" << request->target_time.sec
+//     << " target_time.nanosec=" << request->target_time.nanosec
+//     << "\n  source_time.sec=" << request->source_time.sec
+//     << " source_time.nanosec=" << request->source_time.nanosec
+//     << "\n  timeout.sec=" << request->timeout.sec
+//     << " timeout.nanosec=" << request->timeout.nanosec
+//     << std::endl;
+
+//   std::string errstr;
+//   if (!timeoutAllowed(request->timeout, &errstr)) {
+//     fillError(
+//       response->status,
+//       tf2_msgs::msg::TF2Error::INVALID_ARGUMENT_ERROR,
+//       errstr);
+
+//     const auto elapsed_us =
+//       std::chrono::duration_cast<std::chrono::microseconds>(
+//         std::chrono::steady_clock::now() - start).count();
+
+//     std::cout
+//       << "[handleLookupTransform] Response:"
+//       << "\n  status.error=" << response->status.error
+//       << "\n  status.error_string=" << response->status.error_string
+//       << "\n  elapsed_us=" << elapsed_us
+//       << std::endl << std::flush;
+
+//     return;
+//   }
+
+//   try {
+//     if (request->advanced) {
+//       response->transform = tf_buffer_->lookupTransform(
+//         request->target_frame,
+//         toTime(request->target_time),
+//         request->source_frame,
+//         toTime(request->source_time),
+//         request->fixed_frame,
+//         toTf2Duration(request->timeout));
+//     } else {
+//       response->transform = tf_buffer_->lookupTransform(
+//         request->target_frame,
+//         request->source_frame,
+//         toTime(request->time),
+//         toTf2Duration(request->timeout));
+//     }
+
+//     fillError(
+//       response->status,
+//       tf2_msgs::msg::TF2Error::NO_ERROR,
+//       "Success.");
+//   } catch (const tf2::ConnectivityException & exception) {
+//     fillError(response->status,
+//       tf2_msgs::msg::TF2Error::CONNECTIVITY_ERROR,
+//       exception.what());
+//   } catch (const tf2::ExtrapolationException & exception) {
+//     fillError(response->status,
+//       tf2_msgs::msg::TF2Error::EXTRAPOLATION_ERROR,
+//       exception.what());
+//   } catch (const tf2::InvalidArgumentException & exception) {
+//     fillError(response->status,
+//       tf2_msgs::msg::TF2Error::INVALID_ARGUMENT_ERROR,
+//       exception.what());
+//   } catch (const tf2::LookupException & exception) {
+//     fillError(response->status,
+//       tf2_msgs::msg::TF2Error::LOOKUP_ERROR,
+//       exception.what());
+//   } catch (const tf2::TimeoutException & exception) {
+//     fillError(response->status,
+//       tf2_msgs::msg::TF2Error::TIMEOUT_ERROR,
+//       exception.what());
+//   } catch (const tf2::TransformException & exception) {
+//     fillError(response->status,
+//       tf2_msgs::msg::TF2Error::TRANSFORM_ERROR,
+//       exception.what());
+//   }
+
+//   const auto elapsed_us =
+//     std::chrono::duration_cast<std::chrono::microseconds>(
+//       std::chrono::steady_clock::now() - start).count();
+
+//   std::cout
+//     << "[handleLookupTransform] Response:"
+//     << "\n  status.error=" << response->status.error
+//     << "\n  status.error_string=" << response->status.error_string
+//     << "\n  child_frame_id=" << response->transform.child_frame_id
+//     << "\n  header.frame_id=" << response->transform.header.frame_id
+//     << "\n  translation=("
+//     << response->transform.transform.translation.x << ", "
+//     << response->transform.transform.translation.y << ", "
+//     << response->transform.transform.translation.z << ")"
+//     << "\n  rotation=("
+//     << response->transform.transform.rotation.x << ", "
+//     << response->transform.transform.rotation.y << ", "
+//     << response->transform.transform.rotation.z << ", "
+//     << response->transform.transform.rotation.w << ")"
+//     << "\n  elapsed_us=" << elapsed_us
+//     << std::endl << std::flush;
+// }
 
 void BufferServerNode::handleCanTransform(
   const std::shared_ptr<CanTransform::Request> request,
