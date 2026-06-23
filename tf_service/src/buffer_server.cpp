@@ -46,6 +46,7 @@ void BufferServerNode::init()
   const auto cache_time = tf2::durationFromSec(options_.cache_time_sec);
   tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock(), cache_time, shared_from_this());
   tf_listener_ = std::make_unique<tf2_ros::TransformListener>(*tf_buffer_, shared_from_this(), false);
+  tf_buffer_->setUsingDedicatedThread(true);
 
     std::cerr << "Hi my name is " << this->get_name() << std::endl << std::flush;
   lookup_transform_service_ = create_service<LookupTransform>(
