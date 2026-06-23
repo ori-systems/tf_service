@@ -124,7 +124,7 @@ void BufferServerNode::handleLookupTransform(
 
     std::cout
       << "[handleLookupTransform] Response:"
-      << "\n  status.error=" << response->status.error
+      << "\n  status.error=" << int(response->status.error)
       << "\n  status.error_string=" << response->status.error_string
       << "\n  elapsed_us=" << elapsed_us
       << std::endl << std::flush;
@@ -169,7 +169,7 @@ void BufferServerNode::handleLookupTransform(
 
   std::cout
     << "[handleLookupTransform] Response:"
-    << "\n  status.error=" << response->status.error
+    << "\n  status.error=" << int(response->status.error)
     << "\n  status.error_string=" << response->status.error_string
     << "\n  child_frame_id=" << response->transform.child_frame_id
     << "\n  header.frame_id=" << response->transform.header.frame_id
