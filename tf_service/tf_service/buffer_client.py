@@ -64,13 +64,15 @@ class BufferClient(BufferInterface):
     transforms without being part of a ROS 2 node's executor spin.
     """
 
-    def __init__(self, server_node_name: str = "/tf_service", node: Optional[Node] = None):
+    def __init__(self, server_node_name: str = "/tf_service", node: Optional[Node] = None, base_call_timeout_secs:float=0.1):
         """
         Constructor.
         :param server_node_name: The name of the tf_service server node.
         :param node: An existing rclpy.Node to use for the service clients. If None, a new node is created and spun in a background thread.
+        :base_call_timeout_secs: The number of seconds to allow for network communication
         """
         super().__init__()
+        self.base_call_timeout = int(base_call_timeout_secs*1e9)
         self._own_node = node is None
         self._cb_group = ReentrantCallbackGroup()
         self._node = node or rclpy.create_node("tf_service_buffer_client")
@@ -127,7 +129,11 @@ class BufferClient(BufferInterface):
         req.time = time.to_msg()
         req.timeout = timeout.to_msg()
         req.advanced = False
-        result = self._lookup.call(req, timeout.nanoseconds/1e9)
+        try:
+            result = self._lookup.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
+        except Exception as ex:
+            print(f"Call exception: {ex=}")
+        print(result)
         # future = self._lookup.call_async(req)
         # result = self._wait(future, timeout)
         self._throw_on_error(result.status)
@@ -162,10 +168,10 @@ class BufferClient(BufferInterface):
         req.timeout = to_time_msg(timeout)
         req.advanced = True
         try:
-            result = self._lookup.call(req)#, timeout.nanoseconds/1e9)
+            result = self._lookup.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
         except Exception as ex:
             print(f"Call exception: {ex=}")
-        print(f"{result=}")
+        #print(f"{result=}")
         # future = self._lookup.call_async(req)
         # result = self._wait(future, timeout)
         self._throw_on_error(result.status)
@@ -192,7 +198,11 @@ class BufferClient(BufferInterface):
         req.time = time.to_msg()
         req.timeout = to_time_msg(timeout)
         req.advanced = False
-        result = self._can.call(req, timeout.nanoseconds/1e9)
+        try:
+            result = self._can.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
+        except Exception as ex:
+            print(f"Call exception: {ex=}")
+        print(result)
         # future = self._can.call_async(req)
         # result = self._wait(future, timeout)
         return result.can_transform, result.errstr
@@ -227,7 +237,11 @@ class BufferClient(BufferInterface):
         req.fixed_frame = fixed_frame
         req.timeout = to_time_msg(timeout)
         req.advanced = True
-        result = self._can.call(req, timeout.nanoseconds/1e9)
+        try:
+            result = self._can.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
+        except Exception as ex:
+            print(f"Call exception: {ex=}")
+        print(result)
         #future = self._can.call_async(req)
         #result = self._wait(future, timeout)
         return result.can_transform, result.errstr
