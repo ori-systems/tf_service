@@ -133,7 +133,7 @@ class BufferClient(BufferInterface):
             result = self._lookup.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
         except Exception as ex:
             print(f"Call exception: {ex=}")
-        print(result)
+        #print(result)
         # future = self._lookup.call_async(req)
         # result = self._wait(future, timeout)
         self._throw_on_error(result.status)
@@ -202,7 +202,7 @@ class BufferClient(BufferInterface):
             result = self._can.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
         except Exception as ex:
             print(f"Call exception: {ex=}")
-        print(result)
+        #print(result)
         # future = self._can.call_async(req)
         # result = self._wait(future, timeout)
         return result.can_transform, result.errstr
@@ -241,7 +241,7 @@ class BufferClient(BufferInterface):
             result = self._can.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
         except Exception as ex:
             print(f"Call exception: {ex=}")
-        print(result)
+        #print(result)
         #future = self._can.call_async(req)
         #result = self._wait(future, timeout)
         return result.can_transform, result.errstr
