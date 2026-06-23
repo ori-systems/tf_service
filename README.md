@@ -42,6 +42,8 @@ from rclpy.duration import Duration
 from tf_service import BufferClient
 
 rclpy.init()
+# Note if you already have a node you can pass it as a second parameter to BufferClient
+# to avoid it creating a node.
 buf = BufferClient('/tf_service')
 buf.wait_for_server(5.0)
 if buf.can_transform('map', 'base_link', Time(), Duration(seconds=1.0))[0]:
