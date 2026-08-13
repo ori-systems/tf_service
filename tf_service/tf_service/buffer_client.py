@@ -126,8 +126,8 @@ class BufferClient(BufferInterface):
         req = LookupTransform.Request()
         req.target_frame = target_frame
         req.source_frame = source_frame
-        req.time = time.to_msg()
-        req.timeout = timeout.to_msg()
+        req.time = to_time_msg(time)
+        req.timeout = to_time_msg(timeout)
         req.advanced = False
         try:
             result = self._lookup.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
@@ -195,7 +195,7 @@ class BufferClient(BufferInterface):
         req = CanTransform.Request()
         req.target_frame = target_frame
         req.source_frame = source_frame
-        req.time = time.to_msg()
+        req.time = to_time_msg(time)
         req.timeout = to_time_msg(timeout)
         req.advanced = False
         try:
