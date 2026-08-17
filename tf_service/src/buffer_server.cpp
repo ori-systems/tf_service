@@ -43,6 +43,13 @@ BufferServerNode::BufferServerNode(const rclcpp::NodeOptions & node_options)
 
 void BufferServerNode::init()
 {
+  RCLCPP_INFO(
+    this->get_logger(),
+    "Server parameters:\n cache_time_sec=%.3f\n max_timeout_sec=%.3f\n debug=%s",
+    options_.cache_time_sec,
+    options_.max_timeout_sec,
+    options_.debug ? "true" : "false");
+
   const auto cache_time = tf2::durationFromSec(options_.cache_time_sec);
   tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock(), cache_time, shared_from_this());
   // Keep TF ingestion independent from potentially blocking service callbacks.
