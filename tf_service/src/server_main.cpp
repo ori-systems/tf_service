@@ -30,12 +30,13 @@ int main(int argc, char ** argv)
   server->declare_parameter<int>("num_threads", 0);
   int num_threads = server->get_parameter("num_threads").as_int();
 
-  if (num_threads < 0) {
-    RCLCPP_ERROR(server->get_logger(), "num_threads cannot be negative");
+  if (num_threads < 0 || num_threads == 1) {
+    RCLCPP_ERROR(server->get_logger(), "num_threads must be 0 (automatic) or at least 2");
     return EXIT_FAILURE;
   }
   if (num_threads == 0) {
-    num_threads = static_cast<int>(std::max(1u, std::thread::hardware_concurrency()));
+    // TF has its own listener thread; reserve at least two executor threads for services.
+    num_threads = static_cast<int>(std::max(2u, std::thread::hardware_concurrency()));
   }
 
   server->init();

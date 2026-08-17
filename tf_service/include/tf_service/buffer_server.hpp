@@ -59,6 +59,7 @@ private:
   ServerOptions options_;
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
   std::unique_ptr<tf2_ros::TransformListener> tf_listener_;
+  rclcpp::CallbackGroup::SharedPtr service_callback_group_;
   rclcpp::Service<LookupTransform>::SharedPtr lookup_transform_service_;
   rclcpp::Service<CanTransform>::SharedPtr can_transform_service_;
 };

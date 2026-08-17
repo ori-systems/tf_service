@@ -45,17 +45,24 @@ void BufferServerNode::init()
 {
   const auto cache_time = tf2::durationFromSec(options_.cache_time_sec);
   tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock(), cache_time, shared_from_this());
-  tf_listener_ = std::make_unique<tf2_ros::TransformListener>(*tf_buffer_, shared_from_this(), false);
-  tf_buffer_->setUsingDedicatedThread(true);
+  // Keep TF ingestion independent from potentially blocking service callbacks.
+  tf_listener_ = std::make_unique<tf2_ros::TransformListener>(*tf_buffer_, shared_from_this(), true);
+
+  // Permit service callbacks, including multiple calls to the same service, to overlap.
+  service_callback_group_ = create_callback_group(rclcpp::CallbackGroupType::Reentrant);
 
     std::cerr << "Hi my name is " << this->get_name() << std::endl << std::flush;
   lookup_transform_service_ = create_service<LookupTransform>(
     std::string(this->get_name()) + "/" + std::string(kLookupTransformServiceName),
-    std::bind(&BufferServerNode::handleLookupTransform, this, std::placeholders::_1, std::placeholders::_2));
+    std::bind(&BufferServerNode::handleLookupTransform, this, std::placeholders::_1, std::placeholders::_2),
+    rmw_qos_profile_services_default,
+    service_callback_group_);
 
   can_transform_service_ = create_service<CanTransform>(
     std::string(this->get_name()) + "/" + std::string(kCanTransformServiceName),
-    std::bind(&BufferServerNode::handleCanTransform, this, std::placeholders::_1, std::placeholders::_2));
+    std::bind(&BufferServerNode::handleCanTransform, this, std::placeholders::_1, std::placeholders::_2),
+    rmw_qos_profile_services_default,
+    service_callback_group_);
 }
 
 rclcpp::Time BufferServerNode::toTime(const builtin_interfaces::msg::Time & stamp) const
