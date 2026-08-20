@@ -37,22 +37,33 @@ ros2 launch tf_service server.launch.py
 
 ```python
 import rclpy
+import threading
+from rclpy.executors import MultiThreadedExecutor
 from rclpy.time import Time
 from rclpy.duration import Duration
 from tf_service import BufferClient
 
 rclpy.init()
-# Note if you already have a node you can pass it as a second parameter to BufferClient
-# to avoid it creating a node.
-buf = BufferClient('/tf_service')
-buf.wait_for_server(5.0)
-if buf.can_transform('map', 'base_link', Time(), Duration(seconds=1.0))[0]:
-    transform = buf.lookup_transform('map', 'base_link', Time(), Duration(seconds=1.0))
-print(transform)
-buf.destroy()
-rclpy.shutdown()
+node = rclpy.create_node('tf_service_client')
+executor = MultiThreadedExecutor()
+executor.add_node(node)
+executor_thread = threading.Thread(target=executor.spin, daemon=True)
+executor_thread.start()
+try:
+    buf = BufferClient(node)
+    buf.wait_for_server(5.0)
+    if buf.can_transform('map', 'base_link', Time(), Duration(seconds=1.0))[0]:
+        transform = buf.lookup_transform(
+            'map', 'base_link', Time(), Duration(seconds=1.0)
+        )
+        print(transform)
+finally:
+    executor.shutdown()
+    executor_thread.join()
+    node.destroy_node()
+    rclpy.shutdown()
 ```
 
 ## Notes
 
-ROS 1 persistent services do not have a direct ROS 2 equivalent. This port uses regular ROS 2 service clients and a MultiThreadedExecutor on the server. The C++ and Python clients own a small executor thread by default so synchronous calls can receive service responses even when not embedded in another executor.
+ROS 1 persistent services do not have a direct ROS 2 equivalent. This port uses regular ROS 2 service clients and a MultiThreadedExecutor on the server. The Python client requires a node supplied by its caller; that node must be spinning for synchronous calls to receive service responses.

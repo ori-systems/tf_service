@@ -20,15 +20,10 @@
 
 from __future__ import annotations
 
-import threading
-import typing
 from typing import Optional
-import time
 
-import rclpy
 import tf2_geometry_msgs # pylint: disable=unused-import
 from rclpy.duration import Duration
-from rclpy.executors import SingleThreadedExecutor
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.node import Node
 from rclpy.time import Time
@@ -60,51 +55,31 @@ class BufferClient(BufferInterface):
     A client for the tf_service.
 
     This client is a ROS 2 wrapper for the tf_service, which provides a service-based
-    alternative to the standard tf2_ros.Buffer. It can be used to query for
-    transforms without being part of a ROS 2 node's executor spin.
+    alternative to the standard tf2_ros.Buffer.
     """
 
-    def __init__(self, server_node_name: str = "/tf_service", node: Optional[Node] = None, base_call_timeout_secs:float=0.1):
+    def __init__(
+        self,
+        node: Node,
+        server_node_name: str = "/tf_service",
+        base_call_timeout_secs: float = 0.1,
+    ):
         """
         Constructor.
+        :param node: The rclpy node used to create the service clients.
         :param server_node_name: The name of the tf_service server node.
-        :param node: An existing rclpy.Node to use for the service clients. If None, a new node is created and spun in a background thread.
         :base_call_timeout_secs: The number of seconds to allow for network communication
         """
         super().__init__()
         self.base_call_timeout = base_call_timeout_secs
-        self._own_node = node is None
         self._cb_group = ReentrantCallbackGroup()
-        self._node = node or rclpy.create_node("tf_service_buffer_client")
+        self._node = node
         self._lookup = self._node.create_client(
             LookupTransform, _service_name(server_node_name, "lookup_transform"), callback_group=self._cb_group
         )
         self._can = self._node.create_client(
             CanTransform, _service_name(server_node_name, "can_transform"), callback_group=self._cb_group
         )
-        self._executor = None
-        self._thread = None
-        if self._own_node:
-            self._executor = SingleThreadedExecutor()
-            self._executor.add_node(self._node)
-            self._thread = threading.Thread(target=self._executor.spin, daemon=True)
-            self._thread.start()
-
-    def destroy(self):
-        """Clean up resources, shutting down the internal node if it was created by this client."""
-        if self._executor is not None:
-            self._executor.shutdown()
-        if self._thread is not None:
-            self._thread.join(timeout=1.0)
-        if self._own_node:
-            self._node.destroy_node()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.destroy()
-
     def wait_for_server(self, timeout_sec: Optional[float] = None) -> bool:
         """
         Block until the server is ready to respond to requests.

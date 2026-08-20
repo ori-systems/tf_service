@@ -49,7 +49,10 @@ install(TARGETS ${PROJECT_NAME}_cpp server
 install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 ament_python_install_package(tf_service)
-install(PROGRAMS tf_service/buffer_client.py DESTINATION lib/${PROJECT_NAME})
+install(PROGRAMS
+  tf_service/buffer_client.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME}_cpp)

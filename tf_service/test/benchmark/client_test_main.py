@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
+#!/usr/bin/env python3
 # Copyright 2019 Magazino GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,33 +14,53 @@
 # limitations under the License.
 
 import argparse
-import sys
+import threading
 
-import rospy
+import rclpy
 import tf2_ros
+from rclpy.duration import Duration
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.time import Time
+from rclpy.utilities import remove_ros_args
 
 import tf_service
 
-if __name__ == "__main__":
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = rclpy.create_node("tf_service_benchmark_client")
+    executor = MultiThreadedExecutor()
+    executor.add_node(node)
+    executor_thread = threading.Thread(target=executor.spin, daemon=True)
+    executor_thread.start()
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--lookup_frequency", type=float, default=10)
     parser.add_argument("--use_old_version", action="store_true")
-    args, _ = parser.parse_known_args(rospy.myargv(sys.argv)[1:])
+    parsed_args = parser.parse_args(remove_ros_args(args=args)[1:])
 
-    rospy.init_node("client_test_py")
+    try:
+        if parsed_args.use_old_version:
+            buffer = tf2_ros.BufferClient(node, "/tf2_buffer_server")
+        else:
+            buffer = tf_service.BufferClient(node)
+        buffer.wait_for_server()
 
-    if args.use_old_version:
-        buffer = tf2_ros.BufferClient("/tf2_buffer_server")
-    else:
-        buffer = tf_service.BufferClient("/tf_service")
-    buffer.wait_for_server()
+        period = 1.0 / parsed_args.lookup_frequency
+        while rclpy.ok():
+            try:
+                buffer.lookup_transform(
+                    "map", "odom", Time(), Duration(seconds=1.0))
+            except tf2_ros.TransformException as exc:
+                node.get_logger().error(f"{type(exc)}: {exc}")
+                break
+            threading.Event().wait(period)
+    finally:
+        executor.shutdown()
+        executor_thread.join(timeout=1.0)
+        node.destroy_node()
+        rclpy.shutdown()
 
-    rate = rospy.Rate(args.lookup_frequency)
-    while not rospy.is_shutdown():
-        try:
-            buffer.lookup_transform("map", "odom", rospy.Time(0),
-                                    rospy.Duration(1))
-        except tf2_ros.TransformException as e:
-            rospy.logerr("%s: %s" % (str(type(e)), str(e)))
-            break
-        rate.sleep()
+
+if __name__ == "__main__":
+    main()
