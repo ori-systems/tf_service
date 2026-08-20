@@ -229,23 +229,6 @@ class BufferClient(BufferInterface):
             raise TimeoutException("service call to buffer server timed out")
         return result.can_transform, result.errstr
 
-    def _wait(self, future, timeout: Duration):
-        # The service server has its own timeout, but we add a grace period for the call itself to ensure the future completes.
-        total_timeout = max(timeout.nanoseconds / 1e9, 0.0) + 1.0
-        if self._own_node:
-            if not future.done():
-                future.result(timeout=total_timeout) # is invalid, should purge the own node stuff
-        else:
-            for i in range(20):
-                if not future.done():
-                    time.sleep(total_timeout/20.0)
-                else:
-                    break
-        if not future.done():
-            print(f"{type(future)=}\n{dir(future)=}\n{future.done()=}")
-            raise TimeoutException("service call to buffer server timed out")
-        return future.result()
-
     @staticmethod
     def _throw_on_error(status: TF2Error) -> None:
         if status.error == TF2Error.NO_ERROR:
