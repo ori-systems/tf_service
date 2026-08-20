@@ -132,9 +132,6 @@ class BufferClient(BufferInterface):
         result = self._lookup.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
         if result is None:
             raise TimeoutException("service call to buffer server timed out")
-        #print(result)
-        # future = self._lookup.call_async(req)
-        # result = self._wait(future, timeout)
         self._throw_on_error(result.status)
         return result.transform
 
@@ -161,7 +158,6 @@ class BufferClient(BufferInterface):
         req.target_frame = target_frame
         req.target_time = to_time_msg(target_time)
         req.source_frame = source_frame
-        #print(f"{type(source_time)=}\n{source_time=}\n{repr(source_time)=}\n{dir(source_time)=}", flush=True)
         req.source_time = to_time_msg(source_time)
         req.fixed_frame = fixed_frame
         req.timeout = to_time_msg(timeout)
@@ -169,9 +165,6 @@ class BufferClient(BufferInterface):
         result = self._lookup.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
         if result is None:
             raise TimeoutException("service call to buffer server timed out")
-        #print(f"{result=}")
-        # future = self._lookup.call_async(req)
-        # result = self._wait(future, timeout)
         self._throw_on_error(result.status)
         return result.transform
 
@@ -199,9 +192,6 @@ class BufferClient(BufferInterface):
         result = self._can.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
         if result is None:
             raise TimeoutException("service call to buffer server timed out")
-        #print(result)
-        # future = self._can.call_async(req)
-        # result = self._wait(future, timeout)
         return result.can_transform, result.errstr
 
     def can_transform_full(
@@ -237,9 +227,6 @@ class BufferClient(BufferInterface):
         result = self._can.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
         if result is None:
             raise TimeoutException("service call to buffer server timed out")
-        #print(result)
-        #future = self._can.call_async(req)
-        #result = self._wait(future, timeout)
         return result.can_transform, result.errstr
 
     def _wait(self, future, timeout: Duration):
@@ -247,14 +234,13 @@ class BufferClient(BufferInterface):
         total_timeout = max(timeout.nanoseconds / 1e9, 0.0) + 1.0
         if self._own_node:
             if not future.done():
-                future.result(timeout=total_timeout) # is invalid, should purge the onwn node stuff
+                future.result(timeout=total_timeout) # is invalid, should purge the own node stuff
         else:
             for i in range(20):
                 if not future.done():
                     time.sleep(total_timeout/20.0)
                 else:
                     break
-            #rclpy.spin_until_future_complete(self._node, future, timeout_sec=total_timeout)
         if not future.done():
             print(f"{type(future)=}\n{dir(future)=}\n{future.done()=}")
             raise TimeoutException("service call to buffer server timed out")
