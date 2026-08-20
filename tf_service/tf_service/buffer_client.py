@@ -72,7 +72,7 @@ class BufferClient(BufferInterface):
         :base_call_timeout_secs: The number of seconds to allow for network communication
         """
         super().__init__()
-        self.base_call_timeout = int(base_call_timeout_secs*1e9)
+        self.base_call_timeout = base_call_timeout_secs
         self._own_node = node is None
         self._cb_group = ReentrantCallbackGroup()
         self._node = node or rclpy.create_node("tf_service_buffer_client")
