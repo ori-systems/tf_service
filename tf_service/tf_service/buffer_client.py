@@ -129,10 +129,13 @@ class BufferClient(BufferInterface):
         req.time = to_time_msg(time)
         req.timeout = to_time_msg(timeout)
         req.advanced = False
+        result = None
         try:
             result = self._lookup.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
         except Exception as ex:
             print(f"Call exception: {ex=}")
+        if result is None:
+            raise TimeoutException("service call to buffer server timed out")
         #print(result)
         # future = self._lookup.call_async(req)
         # result = self._wait(future, timeout)
@@ -167,10 +170,13 @@ class BufferClient(BufferInterface):
         req.fixed_frame = fixed_frame
         req.timeout = to_time_msg(timeout)
         req.advanced = True
+        result = None
         try:
             result = self._lookup.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
         except Exception as ex:
             print(f"Call exception: {ex=}")
+        if result is None:
+            raise TimeoutException("service call to buffer server timed out")
         #print(f"{result=}")
         # future = self._lookup.call_async(req)
         # result = self._wait(future, timeout)
@@ -198,10 +204,13 @@ class BufferClient(BufferInterface):
         req.time = to_time_msg(time)
         req.timeout = to_time_msg(timeout)
         req.advanced = False
+        result = None
         try:
             result = self._can.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
         except Exception as ex:
             print(f"Call exception: {ex=}")
+        if result is None:
+            raise TimeoutException("service call to buffer server timed out")
         #print(result)
         # future = self._can.call_async(req)
         # result = self._wait(future, timeout)
@@ -237,10 +246,13 @@ class BufferClient(BufferInterface):
         req.fixed_frame = fixed_frame
         req.timeout = to_time_msg(timeout)
         req.advanced = True
+        result = None
         try:
             result = self._can.call(req, timeout.nanoseconds/1e9 + self.base_call_timeout)
         except Exception as ex:
             print(f"Call exception: {ex=}")
+        if result is None:
+            raise TimeoutException("service call to buffer server timed out")
         #print(result)
         #future = self._can.call_async(req)
         #result = self._wait(future, timeout)
