@@ -64,7 +64,7 @@ class BufferClient(BufferInterface):
     transforms without being part of a ROS 2 node's executor spin.
     """
 
-    def __init__(self, server_node_name: str = "/tf_service", node: Optional[Node] = None, base_call_timeout_secs:float=0.1):
+    def __init__(self, node: Optional[Node] = None, server_node_name: str = "/tf_service", base_call_timeout_secs:float=0.1):
         """
         Constructor.
         :param server_node_name: The name of the tf_service server node.
